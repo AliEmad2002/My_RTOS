@@ -1,28 +1,29 @@
 /*
- * Ready_Queue.h
+ * Sceduler.h
  *
  *  Created on: Mar 20, 2023
  *      Author: Ali Emad Ali
  */
 
-#ifndef INCLUDE_MY_RTOS_READY_QUEUE_H_
-#define INCLUDE_MY_RTOS_READY_QUEUE_H_
+#ifndef INCLUDE_MY_RTOS_SCEDULER_H_
+#define INCLUDE_MY_RTOS_SCEDULER_H_
 
 
 /*******************************************************************************
- * Enqueuing TCB to the ready queue:
+ * System time getting:
  ******************************************************************************/
-void RTOS_Ready_Queue_voidEnqueue(RTOS_TCB_t* tcbPtr);
+u64 RTOS_Sceduler_u64GetSystemTime(void);
 
 /*******************************************************************************
- * Dequeuing TCB from the ready queue to TCB object:
+ * Running TCB getting:
  ******************************************************************************/
-void RTOS_Ready_Queue_voidDequeue(RTOS_TCB_t** distP, u8 pri);
+RTOS_TCB_t* RTOS_Sceduler_ptrGetRunningTcb(void);
 
 /*******************************************************************************
- * Getting priority of the most urgent available TCB:
+ * Init:
  ******************************************************************************/
-/*	returns NULL_PRI if there's not any tasks	*/
-u8 RTOS_Ready_Queue_u8GetPriOfMostUrgent();
+void RTOS_Sceduler_voidInit(void);
 
-#endif /* INCLUDE_MY_RTOS_READY_QUEUE_H_ */
+
+
+#endif /* INCLUDE_MY_RTOS_SCEDULER_H_ */

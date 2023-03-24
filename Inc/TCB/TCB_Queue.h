@@ -11,7 +11,7 @@
 #define RTOS_TCB_QUEUE_MAX_SIZE		RTOS_MAX_NUMBER_OF_TASKS_PER_PRIORITY_LEVEL
 
 typedef struct{
-	RTOS_TCB_t tcbArr[RTOS_TCB_QUEUE_MAX_SIZE];
+	RTOS_TCB_t* tcbPtrArr[RTOS_TCB_QUEUE_MAX_SIZE];
 
 	u16 head;
 	u16 tail;
@@ -27,9 +27,9 @@ void RTOS_TCB_Queue_voidInit(RTOS_TCB_Queue_t* q);
  * Data accessing:
  ******************************************************************************/
 /*
- * copies first of the queue to the location "tcbPtr".
+ * returns pointer to first of the queue (which is of type: "RTOS_TCB_t*".
  */
-void RTOS_TCB_Queue_voidFirst(RTOS_TCB_Queue_t* q, RTOS_TCB_t* tcbPtr);
+RTOS_TCB_t* RTOS_TCB_Queue_ptrFirst(RTOS_TCB_Queue_t* q);
 
 /*******************************************************************************
  * Data queuing:

@@ -8,6 +8,10 @@
 #ifndef INCLUDE_MY_RTOS_TCB_H_
 #define INCLUDE_MY_RTOS_TCB_H_
 
+typedef enum{
+	RTOS_TCB_BlockingReason_Time,
+	RTOS_TCB_BlockingReason_Mutex
+}RTOS_TCB_BlockingReason_t;
 
 typedef struct{
 	/*
@@ -21,14 +25,34 @@ typedef struct{
 	u8 pri;
 
 	/*
-	 * Stack size (in bytes).
+	 * Blocking state.
 	 */
-	u32 stackSize;
+	b8 isBlocked;
+
+	/*
+	 * Blocking reason (if thread is blocked).
+	 */
+	RTOS_TCB_BlockingReason_t blockingReason;
+
+	/*
+	 * Target ready-time (if thread is time blocked).
+	 */
+	u64 targetReadyTime;
+
+	/*
+	 * Pointer to the blocking mutex or semaphore (if any).
+	 */
+	u8* mutexPtr;
+
+	/*
+	 * Stack size (in double words).
+	 */
+	u32 stackSizeInDWrods;
 
 	/*
 	 * Pointer to last word in stack.
 	 */
-	u32* baseStackPtr;
+	u64* stackPtr;
 }RTOS_TCB_t;
 
 /*******************************************************************************

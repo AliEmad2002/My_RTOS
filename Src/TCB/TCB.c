@@ -24,8 +24,8 @@
  ******************************************************************************/
 void RTOS_TCB_voidCpyInfo(RTOS_TCB_t* distPtr, const RTOS_TCB_t* srcPtr)
 {
-	distPtr->id				= srcPtr->id;
-	distPtr->pri			= srcPtr->pri;
-	distPtr->stackSize		= srcPtr->stackSize;
-	distPtr->baseStackPtr	= srcPtr->baseStackPtr;
+	distPtr->id					= srcPtr->id;
+	distPtr->pri				= srcPtr->pri;
+	distPtr->stackSizeInDWrods	= srcPtr->stackSizeInDWrods;
+	distPtr->stackPtr			= srcPtr->stackPtr;
 }

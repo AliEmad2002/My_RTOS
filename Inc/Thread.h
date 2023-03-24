@@ -20,7 +20,7 @@
  * and added to the ready queue.
  */
 void RTOS_Thread_voidCreate(
-	void (*func)(void), u8 priority, u32* stackArr, u32 stackSizeInBytes);
+	void (*func)(void), u8 priority, u64* stackArr, u32 stackSizeInDWords);
 
 
 #endif /* INCLUDE_MY_RTOS_THREAD_H_ */

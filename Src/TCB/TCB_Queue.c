@@ -31,30 +31,9 @@ void RTOS_TCB_Queue_voidInit(RTOS_TCB_Queue_t* q)
 }
 
 /*******************************************************************************
- * Head and tail manipulation:
- ******************************************************************************/
-ALWAYS_INLINE_STATIC void RTOS_TCB_Queue_voidIncHead(RTOS_TCB_Queue_t* q)
-{
-	if (q->head == RTOS_TCB_QUEUE_MAX_SIZE - 1)
-		q->head = 0;
-
-	else
-		q->head++;
-}
-
-ALWAYS_INLINE_STATIC void RTOS_TCB_Queue_voidIncTail(RTOS_TCB_Queue_t* q)
-{
-	if (q->tail == RTOS_TCB_QUEUE_MAX_SIZE - 1)
-		q->tail = 0;
-
-	else
-		q->tail++;
-}
-
-/*******************************************************************************
  * Data accessing:
  ******************************************************************************/
-void RTOS_TCB_Queue_voidFirst(RTOS_TCB_Queue_t* q, RTOS_TCB_t* tcbPtr)
+RTOS_TCB_t* RTOS_TCB_Queue_ptrFirst(RTOS_TCB_Queue_t* q)
 {
 	if (q->size == 0)
 	{
@@ -62,15 +41,13 @@ void RTOS_TCB_Queue_voidFirst(RTOS_TCB_Queue_t* q, RTOS_TCB_t* tcbPtr)
 		while(1);
 	}
 
-	RTOS_TCB_t* src = &(q->tcbArr[q->head]);
-
-	RTOS_TCB_voidCpyInfo(tcbPtr, src);
+	return q->tcbPtrArr[q->head];
 }
 
 /*******************************************************************************
  * Data queuing:
  ******************************************************************************/
-void RTOS_TCB_Queue_voidEnqueue(RTOS_TCB_Queue_t* q, RTOS_TCB_t* tcb)
+void RTOS_TCB_Queue_voidEnqueue(RTOS_TCB_Queue_t* q, RTOS_TCB_t* tcbPtr)
 {
 	if (q->size == RTOS_TCB_QUEUE_MAX_SIZE)
 	{
@@ -78,11 +55,9 @@ void RTOS_TCB_Queue_voidEnqueue(RTOS_TCB_Queue_t* q, RTOS_TCB_t* tcb)
 		while(1);
 	}
 
-	RTOS_TCB_t* dist = &(q->tcbArr[q->tail]);
+	q->tcbPtrArr[q->tail] = tcbPtr;
 
-	RTOS_TCB_voidCpyInfo(dist, tcb);
-
-	RTOS_TCB_Queue_voidIncTail(q);
+	q->tail = (q->tail + 1) % RTOS_TCB_QUEUE_MAX_SIZE;
 
 	q->size++;
 }
@@ -95,7 +70,7 @@ void RTOS_TCB_Queue_voidDequeue(RTOS_TCB_Queue_t* q)
 		while(1);
 	}
 
-	RTOS_TCB_Queue_voidIncHead(q);
+	q->head = (q->head + 1) % RTOS_TCB_QUEUE_MAX_SIZE;
 
 	q->size--;
 }
