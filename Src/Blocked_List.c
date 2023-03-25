@@ -15,7 +15,7 @@
 /*	RTOS	*/
 #include "RTOS_Config.h"
 #include "TCB.h"
-#include "Sceduler.h"
+#include "Scheduler.h"
 
 /*	SELF	*/
 #include "Blocked_List.h"
@@ -61,7 +61,7 @@ b8 RTOS_Blocked_List_b8Unblock(RTOS_TCB_t** distP)
 			if (tcbPtr->blockingReason == RTOS_TCB_BlockingReason_Time)
 			{
 				/*	if ready time has come	*/
-				if (tcbPtr->targetReadyTime <= RTOS_Sceduler_u64GetSystemTime())
+				if (tcbPtr->targetReadyTime <= RTOS_Scheduler_u64GetSystemTime())
 				{
 					blockedArr[i].isUsed = false;
 					tcbPtr->isBlocked = false;

@@ -1,5 +1,5 @@
 /*
- * Sceduler.c
+ * Scheduler.c
  *
  *  Created on: Mar 20, 2023
  *      Author: Ali Emad Ali
@@ -27,7 +27,7 @@
 #include "Thread.h"
 
 /*	SELF	*/
-#include "Sceduler.h"
+#include "Scheduler.h"
 
 static u64 elapsedTicks = 0;
 
@@ -51,7 +51,7 @@ void SysTick_Handler(void)
 /*******************************************************************************
  * System time getting:
  ******************************************************************************/
-ALWAYS_INLINE u64 RTOS_Sceduler_u64GetSystemTime(void)
+ALWAYS_INLINE u64 RTOS_Scheduler_u64GetSystemTime(void)
 {
 	return elapsedTicks;
 }
@@ -59,7 +59,7 @@ ALWAYS_INLINE u64 RTOS_Sceduler_u64GetSystemTime(void)
 /*******************************************************************************
  * Running TCB getting:
  ******************************************************************************/
-ALWAYS_INLINE RTOS_TCB_t* RTOS_Sceduler_ptrGetRunningTcb(void)
+ALWAYS_INLINE RTOS_TCB_t* RTOS_Scheduler_ptrGetRunningTcb(void)
 {
 	return ruuningTcbPtr;
 }
@@ -172,7 +172,7 @@ void RTOS_PendSV_Handler(void)
 /*******************************************************************************
  * Init:
  ******************************************************************************/
-void RTOS_Sceduler_voidInitSysTick(void)
+void RTOS_Scheduler_voidInitSysTick(void)
 {
 	STK_voidInit();
 	STK_voidReload(RCC_u32GetSysInClk() / 1000);
@@ -182,7 +182,7 @@ void RTOS_Sceduler_voidInitSysTick(void)
 	NVIC_voidEnableInterrupt(NVIC_Interrupt_Systick);
 }
 
-void RTOS_Sceduler_voidInit(
+void RTOS_Scheduler_voidInit(
 	void (*idleFunc)(void), u64* idleStackArr, u32 idleStackSizeInDWords)
 {
 	/*	disable all interrupts	*/
@@ -192,7 +192,7 @@ void RTOS_Sceduler_voidInit(
 	SCB_voidSetPriorityGroupsAndSubGroupsNumber(SCB_PRIGROUP_group4_sub4);
 
 	/*	init SysTick and its interrupt	*/
-	RTOS_Sceduler_voidInitSysTick();
+	RTOS_Scheduler_voidInitSysTick();
 
 	/*	init PendSV interrupt	*/
 	NVIC_voidSetInterruptPriority(NVIC_Interrupt_PendSV, 3, 3);

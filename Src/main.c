@@ -26,7 +26,7 @@
 #include "TCB_Queue.h"
 #include "Ready_Queue.h"
 #include "Thread.h"
-#include "Sceduler.h"
+#include "Scheduler.h"
 #include "Delay.h"
 
 /*
@@ -60,7 +60,7 @@ int main(void)
 	RTOS_Thread_voidCreate(func2, 0, stack2, STACK_SIZE_DW);
 
 	/*	init scheduler	*/
-	RTOS_Sceduler_voidInit(funcIdle, stackIdle, STACK_SIZE_DW);
+	RTOS_Scheduler_voidInit(funcIdle, stackIdle, STACK_SIZE_DW);
 
 	while(1)
 	{
