@@ -1,10 +1,12 @@
 /*
- * main.c
+ * Blinky.c
  * This is a simple demo for "My_RTOS".
  *
  *  Created on: Mar 18, 2023
  *      Author: Ali Emad Ali
  */
+
+#if 1	/*	change this to 1, to use this example	*/
 
 /*	LIB	*/
 #include "Std_Types.h"
@@ -21,23 +23,13 @@
 #include "LED_Interface.h"
 
 /*	RTOS	*/
-#include "RTOS_Config.h"
-#include "TCB.h"
-#include "TCB_Queue.h"
-#include "Ready_Queue.h"
-#include "Thread.h"
-#include "Scheduler.h"
-#include "Delay.h"
+#include "My_RTOS.h"
 
-/*
- * Tasks stacks are statically allocated by user.
- * (This gives configurability and static allocation)
- */
 #define STACK_SIZE_DW	200
 
 static u64 stack1[STACK_SIZE_DW];
 static u64 stack2[STACK_SIZE_DW];
-static u64 stackIdle[STACK_SIZE_DW];
+static u64 stackIdle[11];
 
 void func1(void);
 void func2(void);
@@ -60,7 +52,7 @@ int main(void)
 	RTOS_Thread_voidCreate(func2, 0, stack2, STACK_SIZE_DW);
 
 	/*	init scheduler	*/
-	RTOS_Scheduler_voidInit(funcIdle, stackIdle, STACK_SIZE_DW);
+	RTOS_Scheduler_voidInit(funcIdle, stackIdle, 11);
 
 	while(1)
 	{
@@ -99,6 +91,4 @@ void funcIdle(void)
 }
 
 
-
-
-
+#endif
