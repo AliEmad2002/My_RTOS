@@ -22,7 +22,12 @@ RTOS_TCB_t* RTOS_Sceduler_ptrGetRunningTcb(void);
 /*******************************************************************************
  * Init:
  ******************************************************************************/
-void RTOS_Sceduler_voidInit(void);
+/*
+ * Takes data of the idle task. that is to be context switched to when all other
+ * tasks are blocked. (its priority = lowest priority level)
+ */
+void RTOS_Sceduler_voidInit(
+	void (*idleFunc)(void), u64* idleStackArr, u32 idleStackSizeInDWords);
 
 
 

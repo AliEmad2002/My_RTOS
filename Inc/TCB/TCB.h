@@ -15,6 +15,11 @@ typedef enum{
 
 typedef struct{
 	/*
+	 * Pointer to last word in stack.
+	 */
+	u64* stackPtr;
+
+	/*
 	 * Each thread when created is given a unique ID.
 	 */
 	u8 id;
@@ -48,11 +53,6 @@ typedef struct{
 	 * Stack size (in double words).
 	 */
 	u32 stackSizeInDWrods;
-
-	/*
-	 * Pointer to last word in stack.
-	 */
-	u64* stackPtr;
 }RTOS_TCB_t;
 
 /*******************************************************************************

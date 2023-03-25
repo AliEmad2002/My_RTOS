@@ -16,6 +16,7 @@
 #include "SCB_interface.h"
 #include "NVIC_interface.h"
 #include "STK_interface.h"
+#include "RCC_interface.h"
 
 /*	RTOS	*/
 #include "RTOS_Config.h"
@@ -30,7 +31,7 @@
 
 static u64 elapsedTicks = 0;
 
-static RTOS_TCB_t* ruuningTcbPtr;
+RTOS_TCB_t* ruuningTcbPtr;
 
 /*******************************************************************************
  * SysTick handler:
@@ -75,55 +76,49 @@ ALWAYS_INLINE RTOS_TCB_t* RTOS_Sceduler_ptrGetRunningTcb(void)
  * While, assembly coding reveals this whole scene, and "LR" could be safely
  * written.
  ******************************************************************************/
-ALWAYS_INLINE_STATIC void CPU_to_TCB(void)
-{
-	ruuningTcbPtr->stackPtr = (u64*)((u32)Core_Regs_u32ReadPSP() - 10 * 4);
-
-	GET_WORD_AT(ruuningTcbPtr->stackPtr, 2) = Core_Regs_u32ReadGPR4();
-	GET_WORD_AT(ruuningTcbPtr->stackPtr, 3) = Core_Regs_u32ReadGPR5();
-	GET_WORD_AT(ruuningTcbPtr->stackPtr, 4) = Core_Regs_u32ReadGPR6();
-	GET_WORD_AT(ruuningTcbPtr->stackPtr, 5) = Core_Regs_u32ReadGPR7();
-	GET_WORD_AT(ruuningTcbPtr->stackPtr, 6) = Core_Regs_u32ReadGPR8();
-	GET_WORD_AT(ruuningTcbPtr->stackPtr, 7) = Core_Regs_u32ReadGPR9();
-	GET_WORD_AT(ruuningTcbPtr->stackPtr, 8) = Core_Regs_u32ReadGPR10();
-	GET_WORD_AT(ruuningTcbPtr->stackPtr, 9) = Core_Regs_u32ReadGPR11();
-
-	GET_WORD_AT(ruuningTcbPtr->stackPtr, 1) = (u32)(Core_Regs_u8ReadCR());
-}
-
-ALWAYS_INLINE_STATIC void TCB_to_CPU(void)
-{
-	/*
-	 * change PSP to the pointer of R0 in "runningTcb" stack frame, such that on
-	 * return from handler, when the processor un-stacks R0-R3, R12, LR, PC and
-	 * PSR, they are a copy of the ones stored in the stack of "runningTcb"
-	 */
-	Core_Regs_voidWritePSP((u32)ruuningTcbPtr->stackPtr + 10 * 4);
-
-	/*
-	 * As stack frame does not cover all core registers, copy R4-R11 from tcbC
-	 * to CPU
-	 */
-	Core_Regs_voidWriteGPR4(GET_WORD_AT(ruuningTcbPtr->stackPtr, 2));
-	Core_Regs_voidWriteGPR5(GET_WORD_AT(ruuningTcbPtr->stackPtr, 3));
-	Core_Regs_voidWriteGPR6(GET_WORD_AT(ruuningTcbPtr->stackPtr, 4));
-	Core_Regs_voidWriteGPR7(GET_WORD_AT(ruuningTcbPtr->stackPtr, 5));
-	Core_Regs_voidWriteGPR8(GET_WORD_AT(ruuningTcbPtr->stackPtr, 6));
-	Core_Regs_voidWriteGPR9(GET_WORD_AT(ruuningTcbPtr->stackPtr, 7));
-	Core_Regs_voidWriteGPR10(GET_WORD_AT(ruuningTcbPtr->stackPtr, 8));
-	Core_Regs_voidWriteGPR11(GET_WORD_AT(ruuningTcbPtr->stackPtr, 9));
-
-	/*	same with CONTROL register	*/
-	Core_Regs_voidWriteCR(GET_WORD_AT(ruuningTcbPtr->stackPtr, 1));
-}
+//ALWAYS_INLINE_STATIC void CPU_to_TCB(void)
+//{
+//	ruuningTcbPtr->stackPtr = (u64*)((u32)Core_Regs_u32ReadPSP() - 10 * 4);
+//
+//	GET_WORD_AT(ruuningTcbPtr->stackPtr, 1) = (u32)(Core_Regs_u8ReadCR());
+//	GET_WORD_AT(ruuningTcbPtr->stackPtr, 2) = Core_Regs_u32ReadGPR4();
+//	GET_WORD_AT(ruuningTcbPtr->stackPtr, 3) = Core_Regs_u32ReadGPR5();
+//	GET_WORD_AT(ruuningTcbPtr->stackPtr, 4) = Core_Regs_u32ReadGPR6();
+//	GET_WORD_AT(ruuningTcbPtr->stackPtr, 5) = Core_Regs_u32ReadGPR7();
+//	GET_WORD_AT(ruuningTcbPtr->stackPtr, 6) = Core_Regs_u32ReadGPR8();
+//	GET_WORD_AT(ruuningTcbPtr->stackPtr, 7) = Core_Regs_u32ReadGPR9();
+//	GET_WORD_AT(ruuningTcbPtr->stackPtr, 8) = Core_Regs_u32ReadGPR10();
+//	GET_WORD_AT(ruuningTcbPtr->stackPtr, 9) = Core_Regs_u32ReadGPR11();
+//}
+//
+//ALWAYS_INLINE_STATIC void TCB_to_CPU(void)
+//{
+//	/*
+//	 * change PSP to the pointer of R0 in "runningTcb" stack frame, such that on
+//	 * return from handler, when the processor un-stacks R0-R3, R12, LR, PC and
+//	 * PSR, they are a copy of the ones stored in the stack of "runningTcb"
+//	 */
+//	Core_Regs_voidWritePSP((u32)ruuningTcbPtr->stackPtr + 10 * 4);
+//
+//	/*
+//	 * As stack frame does not cover all core registers, copy R4-R11 from tcbC
+//	 * to CPU
+//	 */
+//	Core_Regs_voidWriteCR(GET_WORD_AT(ruuningTcbPtr->stackPtr, 1));
+//	__ISB();
+//
+//	Core_Regs_voidWriteGPR4(GET_WORD_AT(ruuningTcbPtr->stackPtr, 2));
+//	Core_Regs_voidWriteGPR5(GET_WORD_AT(ruuningTcbPtr->stackPtr, 3));
+//	Core_Regs_voidWriteGPR6(GET_WORD_AT(ruuningTcbPtr->stackPtr, 4));
+//	Core_Regs_voidWriteGPR7(GET_WORD_AT(ruuningTcbPtr->stackPtr, 5));
+//	Core_Regs_voidWriteGPR8(GET_WORD_AT(ruuningTcbPtr->stackPtr, 6));
+//	Core_Regs_voidWriteGPR9(GET_WORD_AT(ruuningTcbPtr->stackPtr, 7));
+//	Core_Regs_voidWriteGPR10(GET_WORD_AT(ruuningTcbPtr->stackPtr, 8));
+//	Core_Regs_voidWriteGPR11(GET_WORD_AT(ruuningTcbPtr->stackPtr, 9));
+//}
 
 void RTOS_PendSV_Handler(void)
 {
-	/*	disable all interrupts	*/
-	__disable_irq();
-
-	static b8 firstTime = true;
-
 	/*	unblock blocked tasks which deserve unblocking	*/
 	while(1)
 	{
@@ -141,95 +136,54 @@ void RTOS_PendSV_Handler(void)
 	u8 priHighest = RTOS_Ready_Queue_u8GetPriOfMostUrgent();
 
 	/*
-	 * if it as the very first time PendSV interrupt handler is executed, there's
-	 * no need for stacking the currently running task, as there's no such one.
+	 * If priority of the most urgent ready task is less (larger in value) than
+	 * that of the running task, no switching to happen.
+	 *
+	 * (notice that if they are equal, a switch will occur to achieve the Round-
+	 * Robin balancing)
+	 *
+	 * And, if runningTcb has not been blocked
 	 */
-	if (firstTime)
+	if (ruuningTcbPtr->pri < priHighest && ruuningTcbPtr->isBlocked == false)
 	{
-		firstTime = false;
+		/*	Clear PendSV flag	*/
+		SCB_CLR_PENDSV;
+
+		return;
 	}
 
-	/*	other wise, process the currently running task	*/
+	/*	otherwise	*/
+
+	if (ruuningTcbPtr->isBlocked)
+		RTOS_Blocked_List_voidAdd(ruuningTcbPtr);
+
 	else
-	{
-		/*
-		 * If priority of the most urgent ready task is less (larger in value) than
-		 * that of the running task, no switching to happen.
-		 *
-		 * (notice that if they are equal, a switch will occur to achieve the Round-
-		 * Robin balancing)
-		 *
-		 * And, if runningTcb has not been blocked
-		 */
-		if (ruuningTcbPtr->pri < priHighest && ruuningTcbPtr->isBlocked == false)
-		{
-			/*	Clear PendSV flag	*/
-			SCB_CLR_PENDSV;
-
-			return;
-		}
-
-		/*	otherwise	*/
-
-		/*	stack core registers from CPU to ruuningTcb	*/
-		CPU_to_TCB();
-
-		if (ruuningTcbPtr->isBlocked)
-			RTOS_Blocked_List_voidAdd(ruuningTcbPtr);
-
-		else
-			RTOS_Ready_Queue_voidEnqueue(ruuningTcbPtr);
-	}
+		RTOS_Ready_Queue_voidEnqueue(ruuningTcbPtr);
 
 	/*
 	 * dequeue the current most urgent TCB from the ready queue to runningTcb
 	 */
 	RTOS_Ready_Queue_voidDequeue(&ruuningTcbPtr, priHighest);
 
-	/*
-	 * Un-stack core registers:
-	 *
-	 * TODO:
-	 *    As this function ("RTOS_PendSV_Handler()") is called in the assembly
-	 * written "PendSV_Handler", stack-frame is stacked before calling,
-	 * and gets un-stacked after returning, which overwrites what "TCB_to_CPU()"
-	 * has done here.
-	 *    To solve this problem, let the un-stacking from TCB to CPU take place
-	 * after returning from "RTOS_PendSV_Handler()".
-	 */
-	TCB_to_CPU();
-
-	/*	wait for an empty pipeline (recommended after CONTROL write)	*/
-	__ISB();
-
 	/*	Clear PendSV flag	*/
 	SCB_CLR_PENDSV;
-
-	/*	enable all interrupts	*/
-	__enable_irq();
 }
 
 /*******************************************************************************
  * Init:
  ******************************************************************************/
-void RTOS_Sceduler_voidIdleTaskFunction(void)
-{
-	while(1);
-}
-
-static u64 idleTaskStackArr[RTOS_IDLE_TASK_STACK_SIZE_IN_DWORDS];
-
 void RTOS_Sceduler_voidInitSysTick(void)
 {
 	STK_voidInit();
-	STK_voidReload(1000000);
+	STK_voidReload(RCC_u32GetSysInClk() / 1000);
 	STK_voidEnableSysTick();
 
 	NVIC_voidSetInterruptPriority(NVIC_Interrupt_Systick, 0, 0);
 	NVIC_voidEnableInterrupt(NVIC_Interrupt_Systick);
 }
 
-void RTOS_Sceduler_voidInit(void)
+void RTOS_Sceduler_voidInit(
+	void (*idleFunc)(void), u64* idleStackArr, u32 idleStackSizeInDWords)
 {
 	/*	disable all interrupts	*/
 	__disable_irq();
@@ -246,9 +200,13 @@ void RTOS_Sceduler_voidInit(void)
 
 	/*	create idle task	*/
 	RTOS_Thread_voidCreate(
-		RTOS_Sceduler_voidIdleTaskFunction,
+		idleFunc,
 		RTOS_MAX_NUMBER_OF_PRIORITY_LEVELS - 1,
-		idleTaskStackArr, RTOS_IDLE_TASK_STACK_SIZE_IN_DWORDS);
+		idleStackArr, idleStackSizeInDWords);
+
+	/*	running TCB is initially the idle one	*/
+	RTOS_Ready_Queue_voidDequeue(&ruuningTcbPtr, RTOS_MAX_NUMBER_OF_PRIORITY_LEVELS - 1);
+	Core_Regs_voidWritePSP((u32)(ruuningTcbPtr->stackPtr) + 40);
 
 	/*	pend PendSV interrupt	*/
 	SCB_SET_PENDSV;
