@@ -22,7 +22,7 @@
 
 
 /*	allocate links statically	*/
-static RTOS_BlockedElement_t blockedArr[RTOS_MAX_NUMBER_OF_TCBS] = {0};
+static RTOS_TCB_t* blockedTcbPtrArr[RTOS_MAX_NUMBER_OF_TCBS] = {NULL};
 
 /*******************************************************************************
  * Adding TCB (pointer) to the blocked list:
@@ -31,12 +31,11 @@ void RTOS_Blocked_List_voidAdd(RTOS_TCB_t* tcbPtr)
 {
 	/*	find index of the first non used element in "blockedArr":	*/
 	u8 i = 0;
-	while(blockedArr[i].isUsed)
+	while(blockedTcbPtrArr[i] != NULL)
 		i++;
 
 	/*	add at it	*/
-	blockedArr[i].isUsed = true;
-	blockedArr[i].tcbPtr = tcbPtr;
+	blockedTcbPtrArr[i] = tcbPtr;
 }
 
 /*******************************************************************************
@@ -52,10 +51,10 @@ b8 RTOS_Blocked_List_b8Unblock(RTOS_TCB_t** distP)
 	for (u8 i = 0; i < RTOS_MAX_NUMBER_OF_TCBS; i++)
 	{
 		/*	if there's a blocked thread at this index:	*/
-		if (blockedArr[i].isUsed)
+		while(blockedTcbPtrArr[i] != NULL)
 		{
 			/*	get pointer of this TCB	*/
-			RTOS_TCB_t* tcbPtr = blockedArr[i].tcbPtr;
+			RTOS_TCB_t* tcbPtr = blockedTcbPtrArr[i];
 
 			/*	if it was time blocked:	*/
 			if (tcbPtr->blockingReason == RTOS_TCB_BlockingReason_Time)
@@ -63,7 +62,7 @@ b8 RTOS_Blocked_List_b8Unblock(RTOS_TCB_t** distP)
 				/*	if ready time has come	*/
 				if (tcbPtr->targetReadyTime <= RTOS_Scheduler_u64GetSystemTime())
 				{
-					blockedArr[i].isUsed = false;
+					blockedTcbPtrArr[i] = NULL;
 					tcbPtr->isBlocked = false;
 					*distP = tcbPtr;
 					return true;

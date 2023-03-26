@@ -8,13 +8,6 @@
 #ifndef INCLUDE_MY_RTOS_BLOCKED_LIST_H_
 #define INCLUDE_MY_RTOS_BLOCKED_LIST_H_
 
-
-typedef struct{
-	RTOS_TCB_t* tcbPtr;
-	b8 isUsed;
-}RTOS_BlockedElement_t;
-
-
 /*******************************************************************************
  * Adding TCB (pointer) to the blocked list:
  ******************************************************************************/
