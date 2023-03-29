@@ -9,6 +9,7 @@
 #include "Std_Types.h"
 #include "Bit_Math.h"
 #include <diag/trace.h>
+#include "cmsis_gcc.h"
 
 /*	MCAL	*/
 
@@ -16,6 +17,7 @@
 #include "RTOS_Config.h"
 #include "TCB.h"
 #include "Scheduler.h"
+#include "SVC.h"
 
 /*	SELF	*/
 #include "Blocked_List.h"
@@ -72,16 +74,12 @@ b8 RTOS_Blocked_List_b8Unblock(RTOS_TCB_t** distP)
 			/*	otherwise, if blocking reason was mutex or  semaphore	*/
 			else
 			{
-				/*	if mutex or semaphore is available	*/
 				if (*(tcbPtr->mutexPtr))
 				{
-					/*
-					 * take it.
-					 * TODO: since mutex and semaphore are not yet implemented,
-					 * this is just a primary imagination.
-					 */
 					(*(tcbPtr->mutexPtr))--;
+					blockedTcbPtrArr[i] = NULL;
 					tcbPtr->isBlocked = false;
+					tcbPtr->mutexPtr = NULL;
 					*distP = tcbPtr;
 					return true;
 				}

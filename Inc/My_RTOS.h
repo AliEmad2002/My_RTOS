@@ -16,7 +16,8 @@
 #include "Thread.h"
 #include "Scheduler.h"
 #include "Delay.h"
-
+#include "SVC.h"
+#include "Mutex.h"
 
 
 #endif /* INCLUDE_MY_RTOS_MY_RTOS_H_ */

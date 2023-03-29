@@ -1,8 +1,7 @@
 /*
- * Blinky.c
- * This is a simple demo for "My_RTOS".
+ * Mutex.c
  *
- *  Created on: Mar 18, 2023
+ *  Created on: Mar 27, 2023
  *      Author: Ali Emad Ali
  */
 
@@ -12,6 +11,7 @@
 #include "Std_Types.h"
 #include "Bit_Math.h"
 #include <diag/trace.h>
+#include "Delay_interface.h"
 
 /*	MCAL	*/
 #include "Core_Regs_Interface.h"
@@ -36,6 +36,8 @@ void func2(void);
 void funcIdle(void);
 
 LED_t led1, led2;
+
+static u8 ledMutex = true; // initially available.
 
 int main(void)
 {
@@ -66,9 +68,15 @@ void func1(void)
 {
 	while(1)
 	{
-		LED_voidToggle(&led1);
+		RTOS_Mutex_voidTake(&ledMutex);
 
-		RTOS_Delay(200);
+		LED_voidSetActive(&led1);
+		LED_voidSetInactive(&led2);
+
+		//RTOS_Delay(200);
+		Delay_voidBlockingDelayMs(500);
+
+		RTOS_Mutex_voidGive(&ledMutex);
 	}
 }
 
@@ -76,9 +84,15 @@ void func2(void)
 {
 	while(1)
 	{
-		LED_voidToggle(&led2);
+		RTOS_Mutex_voidTake(&ledMutex);
 
-		RTOS_Delay(100);
+		LED_voidSetActive(&led2);
+		LED_voidSetInactive(&led1);
+
+		//RTOS_Delay(100);
+		Delay_voidBlockingDelayMs(500);
+
+		RTOS_Mutex_voidGive(&ledMutex);
 	}
 }
 

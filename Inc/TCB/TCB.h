@@ -47,7 +47,7 @@ typedef struct{
 	/*
 	 * Pointer to the blocking mutex or semaphore (if any).
 	 */
-	u8* mutexPtr;
+	volatile u8* mutexPtr;
 
 	/*
 	 * Stack size (in double words).

@@ -25,6 +25,7 @@
 #include "Ready_Queue.h"
 #include "Blocked_List.h"
 #include "Thread.h"
+#include "Mutex.h"
 
 /*	SELF	*/
 #include "Scheduler.h"
@@ -38,6 +39,7 @@ RTOS_TCB_t* ruuningTcbPtr;
  ******************************************************************************/
 void SysTick_Handler(void)
 {
+	trace_printf("                    hey from SysTick handler!\n");
 	/*	pend PendSV interrupt	*/
 	SCB_SET_PENDSV;
 
@@ -76,49 +78,24 @@ ALWAYS_INLINE RTOS_TCB_t* RTOS_Scheduler_ptrGetRunningTcb(void)
  * While, assembly coding reveals this whole scene, and "LR" could be safely
  * written.
  ******************************************************************************/
-//ALWAYS_INLINE_STATIC void CPU_to_TCB(void)
-//{
-//	ruuningTcbPtr->stackPtr = (u64*)((u32)Core_Regs_u32ReadPSP() - 10 * 4);
-//
-//	GET_WORD_AT(ruuningTcbPtr->stackPtr, 1) = (u32)(Core_Regs_u8ReadCR());
-//	GET_WORD_AT(ruuningTcbPtr->stackPtr, 2) = Core_Regs_u32ReadGPR4();
-//	GET_WORD_AT(ruuningTcbPtr->stackPtr, 3) = Core_Regs_u32ReadGPR5();
-//	GET_WORD_AT(ruuningTcbPtr->stackPtr, 4) = Core_Regs_u32ReadGPR6();
-//	GET_WORD_AT(ruuningTcbPtr->stackPtr, 5) = Core_Regs_u32ReadGPR7();
-//	GET_WORD_AT(ruuningTcbPtr->stackPtr, 6) = Core_Regs_u32ReadGPR8();
-//	GET_WORD_AT(ruuningTcbPtr->stackPtr, 7) = Core_Regs_u32ReadGPR9();
-//	GET_WORD_AT(ruuningTcbPtr->stackPtr, 8) = Core_Regs_u32ReadGPR10();
-//	GET_WORD_AT(ruuningTcbPtr->stackPtr, 9) = Core_Regs_u32ReadGPR11();
-//}
-//
-//ALWAYS_INLINE_STATIC void TCB_to_CPU(void)
-//{
-//	/*
-//	 * change PSP to the pointer of R0 in "runningTcb" stack frame, such that on
-//	 * return from handler, when the processor un-stacks R0-R3, R12, LR, PC and
-//	 * PSR, they are a copy of the ones stored in the stack of "runningTcb"
-//	 */
-//	Core_Regs_voidWritePSP((u32)ruuningTcbPtr->stackPtr + 10 * 4);
-//
-//	/*
-//	 * As stack frame does not cover all core registers, copy R4-R11 from tcbC
-//	 * to CPU
-//	 */
-//	Core_Regs_voidWriteCR(GET_WORD_AT(ruuningTcbPtr->stackPtr, 1));
-//	__ISB();
-//
-//	Core_Regs_voidWriteGPR4(GET_WORD_AT(ruuningTcbPtr->stackPtr, 2));
-//	Core_Regs_voidWriteGPR5(GET_WORD_AT(ruuningTcbPtr->stackPtr, 3));
-//	Core_Regs_voidWriteGPR6(GET_WORD_AT(ruuningTcbPtr->stackPtr, 4));
-//	Core_Regs_voidWriteGPR7(GET_WORD_AT(ruuningTcbPtr->stackPtr, 5));
-//	Core_Regs_voidWriteGPR8(GET_WORD_AT(ruuningTcbPtr->stackPtr, 6));
-//	Core_Regs_voidWriteGPR9(GET_WORD_AT(ruuningTcbPtr->stackPtr, 7));
-//	Core_Regs_voidWriteGPR10(GET_WORD_AT(ruuningTcbPtr->stackPtr, 8));
-//	Core_Regs_voidWriteGPR11(GET_WORD_AT(ruuningTcbPtr->stackPtr, 9));
-//}
-
 void RTOS_PendSV_Handler(void)
 {
+	/*	take semaphores that "ruuningTcbPtr" asked for (if any)	*/
+	if (ruuningTcbPtr->mutexPtr != NULL)
+	{
+		if (*(ruuningTcbPtr->mutexPtr))
+		{
+			(*(ruuningTcbPtr->mutexPtr))--;
+			ruuningTcbPtr->mutexPtr = NULL;
+		}
+
+		else
+		{
+			ruuningTcbPtr->blockingReason = RTOS_TCB_BlockingReason_Mutex;
+			ruuningTcbPtr->isBlocked = true;
+		}
+	}
+
 	/*	unblock blocked tasks which deserve unblocking	*/
 	while(1)
 	{
@@ -178,7 +155,7 @@ void RTOS_Scheduler_voidInitSysTick(void)
 	STK_voidReload(RCC_u32GetSysInClk() / 1000);
 	STK_voidEnableSysTick();
 
-	NVIC_voidSetInterruptPriority(NVIC_Interrupt_Systick, 0, 0);
+	NVIC_voidSetInterruptPriority(NVIC_Interrupt_Systick, 1, 0);
 	NVIC_voidEnableInterrupt(NVIC_Interrupt_Systick);
 }
 
@@ -189,13 +166,16 @@ void RTOS_Scheduler_voidInit(
 	__disable_irq();
 
 	/*	init interrupt priority grouping	*/
-	SCB_voidSetPriorityGroupsAndSubGroupsNumber(SCB_PRIGROUP_group4_sub4);
+	SCB_voidSetPriorityGroupsAndSubGroupsNumber(SCB_PRIGROUP_group16_sub0);
+
+	/*	init SVC interrupt	*/
+	NVIC_voidSetInterruptPriority(NVIC_Interrupt_SVCall, 0, 0);
 
 	/*	init SysTick and its interrupt	*/
 	RTOS_Scheduler_voidInitSysTick();
 
 	/*	init PendSV interrupt	*/
-	NVIC_voidSetInterruptPriority(NVIC_Interrupt_PendSV, 3, 3);
+	NVIC_voidSetInterruptPriority(NVIC_Interrupt_PendSV, 15, 0);
 	NVIC_voidEnableInterrupt(NVIC_Interrupt_PendSV);
 
 	/*	create idle task	*/

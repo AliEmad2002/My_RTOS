@@ -63,13 +63,3 @@ PendSV_Handler:
 
 	mov lr, #0xFFFFFFFD			/*	EXC_RETURN: thread, use PSP		*/
 	bx lr						/*	return from handler				*/
-
-
-
-
-
-
-
-
-
-

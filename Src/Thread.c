@@ -51,6 +51,7 @@ void RTOS_Thread_voidCreate(
 	tcbPtr->id					= id++;
 	tcbPtr->pri					= priority;
 	tcbPtr->stackSizeInDWrods	= stackSizeInDWords;
+	tcbPtr->mutexPtr			= NULL;
 
 	/*
 	 * As this thread will first time run on return from scheduler (PendSV)
