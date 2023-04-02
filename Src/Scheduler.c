@@ -39,7 +39,7 @@ RTOS_TCB_t* ruuningTcbPtr;
  ******************************************************************************/
 void SysTick_Handler(void)
 {
-	trace_printf("                    hey from SysTick handler!\n");
+	//trace_printf("                    hey from SysTick handler!\n");
 	/*	pend PendSV interrupt	*/
 	SCB_SET_PENDSV;
 
