@@ -32,7 +32,7 @@
 
 static u64 elapsedTicks = 0;
 
-RTOS_TCB_t* ruuningTcbPtr;
+RTOS_TCB_t* runningTcbPtr;
 
 /*******************************************************************************
  * SysTick handler:
@@ -63,7 +63,7 @@ ALWAYS_INLINE u64 RTOS_Scheduler_u64GetSystemTime(void)
  ******************************************************************************/
 ALWAYS_INLINE RTOS_TCB_t* RTOS_Scheduler_ptrGetRunningTcb(void)
 {
-	return ruuningTcbPtr;
+	return runningTcbPtr;
 }
 
 /*******************************************************************************
@@ -80,22 +80,6 @@ ALWAYS_INLINE RTOS_TCB_t* RTOS_Scheduler_ptrGetRunningTcb(void)
  ******************************************************************************/
 void RTOS_PendSV_Handler(void)
 {
-	/*	take semaphores that "ruuningTcbPtr" asked for (if any)	*/
-	if (ruuningTcbPtr->mutexPtr != NULL)
-	{
-		if (*(ruuningTcbPtr->mutexPtr))
-		{
-			(*(ruuningTcbPtr->mutexPtr))--;
-			ruuningTcbPtr->mutexPtr = NULL;
-		}
-
-		else
-		{
-			ruuningTcbPtr->blockingReason = RTOS_TCB_BlockingReason_Mutex;
-			ruuningTcbPtr->isBlocked = true;
-		}
-	}
-
 	/*	unblock blocked tasks which deserve unblocking	*/
 	while(1)
 	{
@@ -121,7 +105,7 @@ void RTOS_PendSV_Handler(void)
 	 *
 	 * And, if runningTcb has not been blocked
 	 */
-	if (ruuningTcbPtr->pri < priHighest && ruuningTcbPtr->isBlocked == false)
+	if (runningTcbPtr->pri < priHighest && runningTcbPtr->isBlocked == false)
 	{
 		/*	Clear PendSV flag	*/
 		SCB_CLR_PENDSV;
@@ -131,19 +115,48 @@ void RTOS_PendSV_Handler(void)
 
 	/*	otherwise	*/
 
-	if (ruuningTcbPtr->isBlocked)
-		RTOS_Blocked_List_voidAdd(ruuningTcbPtr);
+	if (runningTcbPtr->isBlocked)
+		RTOS_Blocked_List_voidAdd(runningTcbPtr);
 
 	else
-		RTOS_Ready_Queue_voidEnqueue(ruuningTcbPtr);
+		RTOS_Ready_Queue_voidEnqueue(runningTcbPtr);
 
 	/*
 	 * dequeue the current most urgent TCB from the ready queue to runningTcb
 	 */
-	RTOS_Ready_Queue_voidDequeue(&ruuningTcbPtr, priHighest);
+	RTOS_Ready_Queue_voidDequeue(&runningTcbPtr, priHighest);
 
 	/*	Clear PendSV flag	*/
 	SCB_CLR_PENDSV;
+}
+
+/*******************************************************************************
+ * SVC handler:
+ ******************************************************************************/
+void SVC_Handler(void)
+{
+	/*
+	 * So far, SVC is called for only taking semaphore or mutex, which pointer
+	 * will be initially set in "runningTcbPtr->mutexPtr"
+	 */
+
+	/*	if mutex / semaphore is available	*/
+	if (*(runningTcbPtr->mutexPtr))
+	{
+		/*	take it	*/
+		(*(runningTcbPtr->mutexPtr))--;
+		/*	return to continue in the thread that've requested it	*/
+		return;
+	}
+
+	/*
+	 * otherwise, block that thread, and execute scheduler on return.
+	 * (pend PendSV interrupt)
+	 */
+	runningTcbPtr->blockingReason = RTOS_TCB_BlockingReason_Mutex;
+	runningTcbPtr->isBlocked = true;
+
+	SCB_SET_PENDSV;
 }
 
 /*******************************************************************************
@@ -185,8 +198,8 @@ void RTOS_Scheduler_voidInit(
 		idleStackArr, idleStackSizeInDWords);
 
 	/*	running TCB is initially the idle one	*/
-	RTOS_Ready_Queue_voidDequeue(&ruuningTcbPtr, RTOS_MAX_NUMBER_OF_PRIORITY_LEVELS - 1);
-	Core_Regs_voidWritePSP((u32)(ruuningTcbPtr->stackPtr) + 40);
+	RTOS_Ready_Queue_voidDequeue(&runningTcbPtr, RTOS_MAX_NUMBER_OF_PRIORITY_LEVELS - 1);
+	Core_Regs_voidWritePSP((u32)(runningTcbPtr->stackPtr) + 40);
 
 	/*	pend PendSV interrupt	*/
 	SCB_SET_PENDSV;

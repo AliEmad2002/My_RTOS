@@ -17,7 +17,6 @@
 #include "RTOS_Config.h"
 #include "TCB.h"
 #include "Scheduler.h"
-#include "SVC.h"
 
 /*	SELF	*/
 #include "Blocked_List.h"

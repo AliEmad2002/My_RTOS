@@ -5,7 +5,7 @@
  *      Author: Ali Emad Ali
  */
 
-#if 0	/*	change this to 1, to use this example	*/
+#if 1	/*	change this to 1, to use this example	*/
 
 /*	LIB	*/
 #include "Std_Types.h"
@@ -23,7 +23,17 @@
 #include "LED_Interface.h"
 
 /*	RTOS	*/
-#include "My_RTOS.h"
+#include "RTOS_Config.h"
+#include "TCB.h"
+#include "TCB_Queue.h"
+#include "Ready_Queue.h"
+#include "Message_Buffer.h"
+#include "Thread.h"
+#include "Scheduler.h"
+#include "Delay.h"
+
+/*	SELF	*/
+#include "Mutex.h"
 
 #define STACK_SIZE_DW	200
 
@@ -73,10 +83,12 @@ void func1(void)
 		LED_voidSetActive(&led1);
 		LED_voidSetInactive(&led2);
 
-		//RTOS_Delay(200);
-		Delay_voidBlockingDelayMs(500);
+		RTOS_Delay(200);
+		//Delay_voidBlockingDelayMs(500);
 
 		RTOS_Mutex_voidGive(&ledMutex);
+
+		RTOS_Delay(2);
 	}
 }
 
@@ -89,10 +101,12 @@ void func2(void)
 		LED_voidSetActive(&led2);
 		LED_voidSetInactive(&led1);
 
-		//RTOS_Delay(100);
-		Delay_voidBlockingDelayMs(500);
+		RTOS_Delay(100);
+		//Delay_voidBlockingDelayMs(500);
 
 		RTOS_Mutex_voidGive(&ledMutex);
+
+		RTOS_Delay(2);
 	}
 }
 
