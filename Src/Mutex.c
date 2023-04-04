@@ -35,12 +35,16 @@ void RTOS_Mutex_voidTake(u8* mutexPtr)
 {
 	RTOS_TCB_t* runningTcbPtr = RTOS_Scheduler_ptrGetRunningTcb();
 	runningTcbPtr->mutexPtr = mutexPtr;
-	__asm volatile ("svc #0");
+	__asm volatile ("svc #1");
 }
 
 ALWAYS_INLINE void RTOS_Mutex_voidGive(u8* mutexPtr)
 {
+	/*	increment it	*/
 	(*mutexPtr)++;
+
+	/*	call the scheduler, to achieve Round-Robin on that mutex	*/
+	__asm volatile ("svc #0");
 }
 
 

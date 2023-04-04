@@ -84,11 +84,8 @@ void func1(void)
 		LED_voidSetInactive(&led2);
 
 		RTOS_Delay(200);
-		//Delay_voidBlockingDelayMs(500);
 
 		RTOS_Mutex_voidGive(&ledMutex);
-
-		RTOS_Delay(2);
 	}
 }
 
@@ -102,11 +99,8 @@ void func2(void)
 		LED_voidSetInactive(&led1);
 
 		RTOS_Delay(100);
-		//Delay_voidBlockingDelayMs(500);
 
 		RTOS_Mutex_voidGive(&ledMutex);
-
-		RTOS_Delay(2);
 	}
 }
 
@@ -114,7 +108,7 @@ void funcIdle(void)
 {
 	while(1)
 	{
-		__asm("WFI");	/*	halts CPU until in interrupt occurs	*/
+		__asm("WFI");	/*	halts CPU until an interrupt occurs	*/
 	}
 }
 
