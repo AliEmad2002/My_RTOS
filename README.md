@@ -7,6 +7,7 @@ ROTS implementation for ARM Cortex-M3 (Learning purposes)
   - Contex switching, with stacking all core registers which are not in the arm defined stack frame.
   - Ready/Waiting tasks are queued, resulting in minimum searching time and achiveing round-robin balancing.
   - Sleep on idle, to save power (demonstrated below).
+  - Mutex and semaphores handling via SVCall.
   
 * Current consumtion of the demo main.c (blinking two LED's at different frequencies, F_sys = 72MHz):
   - with sleep on idle enabled: (about 9.5mA)
