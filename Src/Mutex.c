@@ -31,10 +31,13 @@
 #include "Mutex.h"
 
 
-void RTOS_Mutex_voidTake(u8* mutexPtr)
+u8 RTOS_Mutex_u8Take(u8* mutexPtr, u32 timeOut)
 {
 	RTOS_TCB_t* runningTcbPtr = RTOS_Scheduler_ptrGetRunningTcb();
+
 	runningTcbPtr->mutexPtr = mutexPtr;
+	runningTcbPtr->targetReadyTime = RTOS_Scheduler_u64GetSystemTime() + timeOut;
+
 	__asm volatile ("svc #1");
 }
 
