@@ -28,6 +28,9 @@
 
 void RTOS_Delay(u32 systemTicks)
 {
+	if (systemTicks == 0)
+		return;
+
 	/*	get pointer to the running TCB	*/
 	RTOS_TCB_t* runningTcbPtr = RTOS_Scheduler_ptrGetRunningTcb();
 
@@ -36,14 +39,8 @@ void RTOS_Delay(u32 systemTicks)
 	runningTcbPtr->targetReadyTime = RTOS_Scheduler_u64GetSystemTime() + systemTicks;
 	runningTcbPtr->isBlocked = true;
 
-	/*
-	 * block from here, to avoid execution of any instructions in the task
-	 * after "RTOS_Delay()" was called, in the time before scheduler takes control.
-	 */
-	while(RTOS_Scheduler_u64GetSystemTime() < runningTcbPtr->targetReadyTime)
-	{
-		//trace_printf("f1 waiting\n");
-	}
+	/*	make an SVCall to execute the scheduler	*/
+	__asm volatile ("svc #0");
 }
 
 
