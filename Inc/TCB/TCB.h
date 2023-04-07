@@ -40,7 +40,8 @@ typedef struct{
 	RTOS_TCB_BlockingReason_t blockingReason;
 
 	/*
-	 * Target ready-time (if thread is time blocked).
+	 * Target ready-time (if thread is time blocked by delay or timeout
+	 * dependent functions).
 	 */
 	u64 targetReadyTime;
 
