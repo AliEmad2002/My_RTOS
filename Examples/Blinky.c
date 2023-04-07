@@ -64,9 +64,13 @@ int main(void)
 
 void func1(void)
 {
+	u32 i = 0;
 	while(1)
 	{
-		LED_voidToggle(&led1);
+		//LED_voidToggle(&led1);
+
+
+		trace_printf("task1: %d\n", i++);
 
 		RTOS_Delay(200);
 	}
@@ -74,9 +78,13 @@ void func1(void)
 
 void func2(void)
 {
+	u32 i = 1000;
+
 	while(1)
 	{
-		LED_voidToggle(&led2);
+		//LED_voidToggle(&led2);
+
+		trace_printf("task2: %d\n", i--);
 
 		RTOS_Delay(100);
 	}
