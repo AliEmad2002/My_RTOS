@@ -33,12 +33,33 @@
 
 u8 RTOS_Mutex_u8Take(u8* mutexPtr, u32 timeOut)
 {
+	/*	get pointer to the running thread (the one requested the mutex)	*/
 	RTOS_TCB_t* runningTcbPtr = RTOS_Scheduler_ptrGetRunningTcb();
 
+	/*
+	 * assign these data, so that SVCall and scheduler know exactly what this
+	 * thread wants.
+	 */
 	runningTcbPtr->mutexPtr = mutexPtr;
 	runningTcbPtr->targetReadyTime = RTOS_Scheduler_u64GetSystemTime() + timeOut;
 
+	/*	make an SVCall to take mutex / semaphore	*/
 	__asm volatile ("svc #1");
+
+	/*	on task resuming after mutex taking or timeout passing	*/
+	/*
+	 * if "runningTcbPtr->mutexPtr" has been changed to "NULL" by the un-blocking
+	 * functionality of the scheduler, it means mutex / semaphore has been taken.
+	 */
+	if (runningTcbPtr->mutexPtr == NULL)
+		return 1;
+
+	/*
+	 * Otherwise, it means mutex / semaphore has not been taken int the given
+	 * timeout.
+	 */
+	else
+		return 0;
 }
 
 ALWAYS_INLINE void RTOS_Mutex_voidGive(u8* mutexPtr)
